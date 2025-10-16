@@ -2,7 +2,7 @@
 import pandas as pd
 from pathlib import Path
 
-# ---- 0) 파일 경로 (본인 환경에 맞게 바꾸세요) ----
+# ---- 0) 파일 경로 ----
 dataset1_path = r"C:\Users\LG\Desktop\Bigcontest_Agent\data\big_data_set1_f.csv"  # 개요
 dataset2_path = r"C:\Users\LG\Desktop\Bigcontest_Agent\data\big_data_set2_f.csv"  # 월별 이용
 dataset3_path = r"C:\Users\LG\Desktop\Bigcontest_Agent\data\big_data_set3_f.csv"  # 월별 고객
@@ -86,3 +86,4 @@ if dup_mask.any():
 # ---- 6) 저장 (엑셀 호환을 위해 utf-8-sig 권장) ----
 store_month_df.to_csv(out_path, index=False, encoding="utf-8-sig")
 print(f"[OK] Saved merged CSV: {out_path}  (rows={len(store_month_df):,}, cols={store_month_df.shape[1]})")
+
