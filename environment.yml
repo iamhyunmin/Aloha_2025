@@ -1,0 +1,47 @@
+name: bigcontest_2025
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.10
+  - numpy
+  - pandas
+  - scikit-learn
+  - scipy
+  - tqdm
+  - regex
+  - faiss-cpu
+  - pip
+  - pip:
+      # ---------- Core: PyTorch ----------
+      # CPU 환경용 (GPU 환경에서는 수동으로 cu121 wheel 설치 권장)
+      - torch==2.5.1
+      - torchvision==0.20.1
+      - torchaudio==2.5.1
+
+      # ---------- Sentence Embedding & Transformers ----------
+      - sentence-transformers==2.2.2     # 안정 버전, bge-m3 호환
+      - transformers==4.37.2             # huggingface_hub 0.24대와 호환
+      - huggingface_hub==0.24.5          # split_torch_state_dict_into_shards 포함
+
+      # ---------- RAG / Retrieval ----------
+      - langchain
+      - faiss-cpu
+
+      # ---------- Utility & Processing ----------
+      - tqdm
+      - regex
+      - scikit-learn
+      - scipy
+
+      # ---------- Web / Visualization ----------
+      - streamlit==1.39.0
+      - matplotlib
+      - seaborn
+
+      # ---------- External API ----------
+      - google-generativeai
+
+# 💡 Notes:
+# - GPU 환경에서는 torch==2.5.1+cu121 로 별도 설치 권장
+# - 이 버전 세트는 sentence-transformers 2.2.2 / transformers 4.37.2 / huggingface_hub 0.24.5 고정
