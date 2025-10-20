@@ -247,9 +247,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-import pandas as pd
-
+  
 path = "store_google_rating.csv"  
 df = pd.read_csv(path)
 
@@ -260,3 +258,4 @@ df.to_csv(out_path, index=False, encoding="utf-8-sig")
 
 
 print("saved ->", out_path)
+
