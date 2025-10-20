@@ -258,4 +258,5 @@ out_path = "C:\\Users\\LG\\Desktop\\Bigcontest_Agent\\store_google_rating.csv"  
 # 엑셀에서 한글 안 깨지게 저장
 df.to_csv(out_path, index=False, encoding="utf-8-sig")
 
+
 print("saved ->", out_path)
