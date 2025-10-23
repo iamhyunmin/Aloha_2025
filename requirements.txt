@@ -1,5 +1,6 @@
 # ---------- Core Environment ----------
 torch==2.0.1
+#torch==2.5.1 <- 실제 전체 과정 실행시 이 버전으로 설치
 
 # ---------- Sentence Embedding & Transformers ----------
 sentence-transformers==2.2.2     # 안정 버전, bge-m3 호환
