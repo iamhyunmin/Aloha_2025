@@ -10,6 +10,7 @@ from PIL import Image
 from rag_gemini import generate_revue_answer  # ✅ 기존 RAG+Gemini 함수 그대로 사용
 import re # <-- 1. re 모듈 추가
 from config import DATA_DIR, ARTIFACTS_DIR
+import traceback
 
 # -------------------------------
 # 환경 변수 로드
@@ -394,9 +395,9 @@ if prompt := st.chat_input("가맹점 이름과 정확한 주소를 함께 질�
                 display_revue_report(answer) 
                 
             except Exception as e:
-                # 3. 오류 발생 시, 오류 메시지만 채팅창에 표시합니다.
-                answer = f"⚠️ 오류 발생: {e}"
-                st.markdown(answer)
+                st.markdown(f"⚠️ 오류 발생: {e}")
+                print("⚠️ 내부 오류 발생:")
+                print(traceback.format_exc())
                 
     # 4. 전체 응답 텍스트 (파싱 전 원본)를 대화 기록에 저장합니다.
     st.session_state["chat_history"].append({"role": "assistant", "content": answer})
