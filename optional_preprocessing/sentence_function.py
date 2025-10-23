@@ -5,8 +5,8 @@ from typing import Any, Dict
 # -------------------------
 # 0) 파일 경로 설정
 # -------------------------
-IN_PATH  = "store_month_df_bucketed.csv"     # 입력 파일
-OUT_PATH = "store_with_rag_text.csv"         # 출력 파일
+IN_PATH = os.path.join(DATA_DIR, "store_month_df_bucketed.csv")
+OUT_PATH = os.path.join(DATA_DIR, "store_with_rag_text.csv")
 CLOSE_COL = "MCT_ME_D"                       # 폐점일 컬럼
 
 # -------------------------
@@ -172,3 +172,4 @@ if __name__ == "__main__":
 
     df.to_csv(OUT_PATH, index=False, encoding="utf-8-sig")
     print(f"[DONE] Saved → {OUT_PATH} (rows={len(df):,})")
+
