@@ -15,15 +15,33 @@ import google.generativeai as genai
 # -------------------------------
 # 환경 설정
 # -------------------------------
-from config import DATA_DIR, ARTIFACTS_DIR
-import os
+OUT_DIR = "artifacts"
+EMB_MODEL = "BAAI/bge-m3"
+TOP_K = 12
 
-OUT_DIR = ARTIFACTS_DIR
-...
-index = faiss.read_index(os.path.join(ARTIFACTS_DIR, "rag_faiss.index"))
-meta = pd.read_csv(os.path.join(ARTIFACTS_DIR, "meta.csv"))
-...
-versus_path = os.path.join(DATA_DIR, "versus_closed.csv")
+# 🔑 Gemini API 키
+load_dotenv()  # .env 파일 읽기
+
+api_key = os.getenv("GEMINI_API_KEY")
+
+if not api_key:
+    raise ValueError("⚠️ GEMINI_API_KEY not found in .env file")
+genai.configure(api_key=api_key)
+
+llm = genai.GenerativeModel("gemini-2.5-flash")
+
+# -------------------------------
+# 인덱스 및 메타 불러오기
+# -------------------------------
+index = faiss.read_index(f"{OUT_DIR}/rag_faiss.index")
+meta = pd.read_csv(f"{OUT_DIR}/meta.csv")
+model = SentenceTransformer(EMB_MODEL, device="cpu")
+
+# -------------------------------
+# 추가 데이터 불러오기
+# -------------------------------
+
+# === 폐점 데이터 ===
 if os.path.exists(versus_path):
     summary_df = pd.read_csv(versus_path, encoding="utf-8-sig")
 else:
@@ -362,4 +380,5 @@ if __name__ == "__main__":
             break
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
+
 
