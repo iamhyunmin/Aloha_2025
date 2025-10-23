@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from PIL import Image
 from rag_gemini import generate_revue_answer  # ✅ 기존 RAG+Gemini 함수 그대로 사용
 import re # <-- 1. re 모듈 추가
+from config import DATA_DIR, ARTIFACTS_DIR
 
 # -------------------------------
 # 환경 변수 로드
