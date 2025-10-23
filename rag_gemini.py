@@ -63,10 +63,8 @@ meta = pd.read_csv(META_PATH)
 # -------------------------------
 def load_model():
     from sentence_transformers import SentenceTransformer
-    print("🔄 SentenceTransformer 로드 중...")
-    return SentenceTransformer(
-        "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", device="cpu"
-    )
+    print("🔄 SentenceTransformer 로드 중... (BAAI/bge-m3)")
+    return SentenceTransformer("BAAI/bge-m3", device="cpu")
 
 model = load_model()
 
@@ -439,6 +437,7 @@ if __name__ == "__main__":
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
         
+
 
 
 
