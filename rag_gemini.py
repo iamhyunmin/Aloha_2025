@@ -66,7 +66,7 @@ def _get_confirm_token(response):
             return value
     return None
 
-def _save_response_content(response, destination):
+def _save_response_content(response, dest_path):
     """스트림으로 대용량 파일 안전 저장"""
     os.makedirs(os.path.dirname(destination), exist_ok=True)
     CHUNK_SIZE = 32768
@@ -447,6 +447,7 @@ if __name__ == "__main__":
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
         
+
 
 
 
