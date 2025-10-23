@@ -12,14 +12,15 @@
 설치:
   pip install requests pandas
 """
-
+from config import DATA_DIR
 import os, re, time, json, math, requests, pandas as pd
 from datetime import timedelta
 
 # ================== 경로/설정 ==================
-SRC = "store_month_df_buckedted.csv"           # 입력 (수정 가능)
-DST = "store_google_rating.csv"     # 최종 출력
-CACHE_DIR = "/mnt/data/.gplaces_cache"; os.makedirs(CACHE_DIR, exist_ok=True)
+SRC = os.path.join(DATA_DIR, "store_month_df_bucketed.csv")
+DST = os.path.join(DATA_DIR, "store_google_rating.csv")
+CACHE_DIR = os.path.join(DATA_DIR, "_gplaces_cache")
+os.makedirs(CACHE_DIR, exist_ok=True)
 CHKPT_EVERY = 200   # N건마다 체크포인트 저장
 
 ID_COL   = "ENCODED_MCT"
@@ -258,4 +259,5 @@ df.to_csv(out_path, index=False, encoding="utf-8-sig")
 
 
 print("saved ->", out_path)
+
 
