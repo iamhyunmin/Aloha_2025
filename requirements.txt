@@ -24,10 +24,12 @@ regex
 matplotlib
 seaborn
 streamlit==1.39.0
+python mcp_server.py
 
 # ---------- External API ----------
 google-generativeai
 python-dotenv
+
 
 
 
