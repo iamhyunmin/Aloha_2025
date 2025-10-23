@@ -15,12 +15,10 @@ import requests, time
 ARTIFACTS_DIR = "data"
 FAISS_PATH = os.path.join(ARTIFACTS_DIR, "rag_faiss.index")
 META_PATH = os.path.join(ARTIFACTS_DIR, "meta.csv")
-QUERY_PATH = os.path.join(ARTIFACTS_DIR, "query_emb.pkl")
 
 # 🔹 Hugging Face 파일 URL
 FAISS_URL = "https://huggingface.co/hyunmin0215/aloha-assets/resolve/main/rag_faiss.index"
 META_URL = "https://huggingface.co/hyunmin0215/aloha-assets/resolve/main/meta.csv"
-QUERY_URL = "https://huggingface.co/hyunmin0215/aloha-assets/resolve/main/query_emb.pkl"
 
 
 # -------------------------------
@@ -52,36 +50,26 @@ if not os.path.exists(META_PATH):
 else:
     print("✅ meta.csv 이미 존재")
 
-if not os.path.exists(QUERY_PATH):
-    print("🔽 Hugging Face에서 query_emb.pkl 다운로드 중...")
-    download_from_url(QUERY_URL, QUERY_PATH)
-else:
-    print("✅ query_emb.pkl 이미 존재")
-
-
 # -------------------------------
 # (3) 파일 로드
 # -------------------------------
 index = faiss.read_index(FAISS_PATH)
 meta = pd.read_csv(META_PATH)
-with open(QUERY_PATH, "rb") as f:
-    query_emb = pickle.load(f)
 
-print("✅ FAISS, META, QUERY 임베딩 로드 완료")
+print("✅ FAISS, META, MODEL 로드 완료")
 # -------------------------------
 # SentenceTransformer 로드
 # -------------------------------
 _model = None
 
 def get_model():
+    """Streamlit Cloud 대응 — 모델 최초 1회만 로드"""
     global _model
     if _model is None:
         from sentence_transformers import SentenceTransformer
         print("🔄 SentenceTransformer 최초 로드 중... (BAAI/bge-m3)")
         _model = SentenceTransformer("BAAI/bge-m3", device="cpu")
     return _model
-
-print("✅ FAISS, META, MODEL 로드 완료")
 # -------------------------------------
 # (공용 프롬프트 모듈로 불러오기 가능)
 # 다른 파일에서 from rag_gemini import SYSTEM_PROMPT 형태로 사용
@@ -166,9 +154,9 @@ def build_rating_summary(mct_list, max_lines=None):
 # -------------------------------
 # 검색 함수
 # -------------------------------
-def retrieve_context(top_k=5):
-    """미리 계산된 쿼리 임베딩 기반 검색"""
-    D, I = index.search(np.array(query_emb, dtype="float32"), top_k)
+def retrieve_context(query, top_k=TOP_K):
+    q_emb = get_model().encode([user_query], normalize_embeddings=True)
+    D, I = index.search(np.array(q_emb, dtype="float32"), top_k)
     ctx = meta.iloc[I[0]].copy()
     ctx["score"] = D[0]
     return ctx
@@ -342,16 +330,24 @@ ReVue — 데이터를 길로 바꾸는 마케팅 네비게이션
 # ----------------------------
 # 🧠 질의 수행 함수
 # ----------------------------
-def generate_revue_answer(user_query=None):
+def generate_revue_answer(user_query, mct_list=None):
     """
-    ReVue 시연용: bge-m3 없이 FAISS 검색 + LLM 응답
-    user_query는 무시하고 고정 query 기반으로 검색
+    RAG + 폐점 힌트 + 별점 데이터를 함께 반영한 질의 응답
+    - 주소 자동 감지 및 필터링 강화 (공백, 띄어쓰기 불일치 포함)
+    - 잘못된 fallback 제거 (불필요한 구 단위 재검색 X)
     """
-    print("🔍 검색 시작 (고정 query 기반)")
-    ctx_df = retrieve_context(top_k=5)
 
-    # 상위 결과 텍스트를 요약형으로 결합
-    context_text = "\n\n".join(ctx_df["rag_text"].tolist())
+    # 1️⃣ RAG 검색
+    ctx_df = retrieve_context(user_query, top_k=TOP_K)
+    ctx_df_all = ctx_df.copy()  # 원본 백업 (필터 실패 시 전체 유지용)
+
+    # (validation) RAG 검색 결과 확인
+    print("=== 🔍 RAG 검색 결과 미리보기 ===")
+    print(ctx_df[["TA_YM", "rag_text"]].head())
+    print("================================\n")
+
+    # ✅ 기본 문맥 구성
+    context_text = "\n\n".join(ctx_df["rag_text"].head(10))
 
     # 1.5️⃣ 주소 자동 감지 및 필터링
     # 숫자 없어도 감지 가능 (ex. '왕십리로', '왕십리길')
