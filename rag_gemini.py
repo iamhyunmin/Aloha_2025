@@ -157,7 +157,7 @@ def build_rating_summary(mct_list, max_lines=None):
 # 검색 함수
 # -------------------------------
 def retrieve_context(query, top_k=TOP_K):
-    q_emb = model.encode([query], normalize_embeddings=True)
+    q_emb = get_model().encode([user_query], normalize_embeddings=True)
     D, I = index.search(np.array(q_emb, dtype="float32"), top_k)
     ctx = meta.iloc[I[0]].copy()
     ctx["score"] = D[0]
@@ -440,6 +440,7 @@ if __name__ == "__main__":
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
         
+
 
 
 
