@@ -10,8 +10,8 @@ import os
 # ----------------------------
 # 설정
 # ----------------------------
-IN_PATH  = "data/store_with_rag_text.csv"   # 문장화 완료된 CSV
-OUT_DIR  = "artifacts"                 # 인덱스 저장 폴더
+IN_PATH = os.path.join(DATA_DIR, "store_with_rag_text.csv")
+OUT_DIR = ARTIFACTS_DIR
 EMB_MODEL = "BAAI/bge-m3"              # 임베딩 모델
 CHUNK_SIZE = 700                       # 청킹 크기 (토큰 단위 근사)
 CHUNK_OVERLAP = 100                    # 청킹 오버랩
@@ -109,5 +109,6 @@ if __name__ == "__main__":
     for _, r in res.iterrows():
         print(f"🏪 {r['MCT_SIGUNGU_NM']} | {r['HPSN_MCT_ZCD_NM']} | score={r['score']:.3f}")
         print(f"→ {r['rag_text'][:120]}...\n")
+
 
 
