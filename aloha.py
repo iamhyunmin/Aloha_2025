@@ -218,7 +218,7 @@ def display_revue_report(llm_output_text):
     data['traffic_light'] = extract_section(r'🚦신호등:\s*(.*?)\n', llm_output_text)
     data['good_area'] = extract_section(r'🚗 잘 가고 있는 구간\n(.*?)\n\n⚠️ 느리게 가고 있는 구간', llm_output_text)
     data['bad_area'] = extract_section(r'⚠️ 느리게 가고 있는 구간\n(.*?)\n\n🎯한줄요약:', llm_output_text)
-    data['summary'] = extract_section(r'🎯한줄요약:\n(.*?)\n\n', llm_output_text)
+    data['summary'] = extract_section(r'🎯한줄요약:\s*(.*?)(?:\n\n|\n|$)', llm_output_text)
     
     # [경로 탐색] 섹션
     data['Enhance_line'] = extract_section(r'- 강화 경로 \(Enhance Line\): (.*?)(?:\n|- 보수 경로)', llm_output_text)
