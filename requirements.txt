@@ -1,5 +1,5 @@
 # ---------- Core Environment ----------
-torch==2.0.1
+torch
 #torch==2.5.1 <- 실제 전체 과정 실행시 이 버전으로 설치
 
 # ---------- Sentence Embedding & Transformers ----------
@@ -27,6 +27,7 @@ streamlit==1.39.0
 # ---------- External API ----------
 google-generativeai
 python-dotenv
+
 
 
 
