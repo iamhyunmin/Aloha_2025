@@ -39,67 +39,24 @@ ARTIFACTS_DIR = "data"
 FAISS_PATH = os.path.join(ARTIFACTS_DIR, "rag_faiss.index")
 META_PATH = os.path.join(ARTIFACTS_DIR, "meta.csv")
 
-# 🔹 Google Drive 파일 ID (각자 Drive 링크에서 복사)
-FAISS_FILE_ID = "1NnaIYYDzeFjn95Pf7J_abQ_-FWEhreu8"   # rag_faiss.index
-META_FILE_ID = "1GPI_coosS5YIbwvS-9GAjka-mVu47wY6"    # meta.csv
-
-def download_from_gdrive(file_id, dest_path, max_retries=3):
-    """Google Drive 대용량(바이러스 스캔 경고 포함) 파일 다운로드 완전/재시도 버전"""
-    URL = "https://drive.google.com/uc?export=download"
-    session = requests.Session()
-    
-    for attempt in range(max_retries):
-        response = session.get(URL, params={"id": file_id}, stream=True)
-        token = _get_confirm_token(response)
-        
-        if not token:
-            # 쿠키에 토큰이 없으면 혹시 HTML이 아니라 바로 파일일 수도 있음
-            if _is_html(response):
-                print(f"⚠️ [시도 {attempt+1}] HTML 페이지 감지, 1초 후 재시도 중...")
-                time.sleep(1)
-                continue
-            else:
-                print("✅ HTML 아님 → 직접 저장 진행")
-                _save_response_content(response, dest_path)
-                return
-        
-        # 토큰이 있으면 confirm 파라미터로 재요청
-        print("⚠️ Google Drive 경고 감지 → confirm 토큰 재요청 중...")
-        response = session.get(URL, params={"id": file_id, "confirm": token}, stream=True)
-        
-        if _is_html(response):
-            print(f"⚠️ [시도 {attempt+1}] 여전히 HTML 응답 → 재시도")
-            time.sleep(1)
-            continue
-        
-        _save_response_content(response, dest_path)
-        print(f"✅ 다운로드 완료: {dest_path}")
-        return
-    
-    raise RuntimeError("❌ Google Drive 다운로드 실패 — 바이러스 경고를 우회하지 못했습니다.")
+# 🔹 Hugging Face 파일 URL
+FAISS_URL = "https://huggingface.co/hyunmin0215/aloha-assets/resolve/main/rag_faiss.index"
+META_URL = "https://huggingface.co/hyunmin0215/aloha-assets/resolve/main/meta.csv"
 
 
-def _get_confirm_token(response):
-    for key, value in response.cookies.items():
-        if key.startswith("download_warning"):
-            return value
-    return None
-
-def _is_html(response):
-    """응답이 HTML(= Drive 경고 페이지)인지 검사"""
-    head = b""
-    try:
-        head = next(response.iter_content(512))
-    except StopIteration:
-        pass
-    return head.strip().startswith(b"<!DOCTYPE html") or b"<html" in head.lower()
-
-def _save_response_content(response, dest_path):
+# -------------------------------
+# 파일 다운로드 함수
+# -------------------------------
+def download_from_url(url, dest_path):
+    """Hugging Face 등에서 파일 다운로드 (Streamlit Cloud 호환)"""
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-    with open(dest_path, "wb") as f:
-        for chunk in response.iter_content(32768):
-            if chunk:
-                f.write(chunk)
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(dest_path, "wb") as f:
+            f.write(response.content)
+        print(f"✅ 다운로드 완료: {dest_path}")
+    else:
+        raise RuntimeError(f"❌ 다운로드 실패 ({response.status_code}): {url}")
     
 # 파일이 없을 경우 자동 다운로드
 if not os.path.exists(FAISS_PATH):
@@ -466,6 +423,7 @@ if __name__ == "__main__":
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
         
+
 
 
 
