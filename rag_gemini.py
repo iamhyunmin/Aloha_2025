@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import re
 from dotenv import load_dotenv
-from sentence_transformers import SentenceTransformer
+#from sentence_transformers import SentenceTransformer
 import google.generativeai as genai  
 from config import DATA_DIR, ARTIFACTS_DIR
 import requests, time
@@ -57,7 +57,7 @@ else:
 # -------------------------------
 index = faiss.read_index(FAISS_PATH)
 meta = pd.read_csv(META_PATH)
-model = SentenceTransformer("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", device="cpu")
+#model = SentenceTransformer("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", device="cpu")
 
 print("✅ FAISS, META, MODEL 로드 완료")
 
@@ -429,6 +429,7 @@ if __name__ == "__main__":
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
         
+
 
 
 
