@@ -297,12 +297,17 @@ def generate_revue_answer(user_query, mct_list=None):
 
     # 1.5️⃣ 주소 자동 감지 및 필터링
     # 숫자 없어도 감지 가능 (ex. '왕십리로', '왕십리길')
-    addr_pattern = r"((서울(?:특별시)?\s*)?(성동구\s*)?[가-힣A-Za-z0-9]+(\s*\d+|\s*(로|길|대로|대|가|나|다|라|마|바|사|아|자|차|카|타|파|하))\s*\d*)"
-    addr_match = re.search(addr_pattern, user_query)  # ✅ 질의문에서 주소 감지
+    addr_pattern = r"((서울(?:특별시)?\s*)?(성동구\s*)?[가-힣A-Za-z0-9]+(로|길|대로)\s*\d*)"
+    addr_match = re.search(addr_pattern, user_query)
 
     if addr_match:
-        # 감지된 주소 정규화: 모든 공백 제거
-        addr_filter = re.sub(r"\s+", "", addr_match.group(0).strip())
+        addr_filter = addr_match.group(0).strip()
+        ctx_df["ADDR_EXTRACT"] = ctx_df["rag_text"].str.extract(r"\[ADDR=([^\]]+)\]")[0]
+        filtered = ctx_df[ctx_df["ADDR_EXTRACT"].str.contains(addr_filter, na=False)]
+        if len(filtered) > 0:
+            ctx_df = filtered
+        else:
+            print("⚠️ 주소 일치 없음, 전체 RAG 유지")
 
         # rag_text 내부에서 [ADDR= ...] 부분 추출 및 정규화
         ctx_df["ADDR_EXTRACT"] = (
@@ -382,4 +387,5 @@ if __name__ == "__main__":
             break
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
+
 
