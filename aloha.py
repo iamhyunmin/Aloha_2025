@@ -6,8 +6,9 @@ import streamlit as st
 from pathlib import Path
 from dotenv import load_dotenv
 from PIL import Image
-from rag_gemini import generate_revue_answer  # ✅ 기존 RAG+Gemini 함수 그대로 사용
-import re # <-- 1. re 모듈 추가
+import re  # ✅ 정규식 섹션 추출용
+import os  # ✅ 경로 제어용 (config.py 기준으로)
+from rag_gemini import generate_revue_answer
 
 # -------------------------------
 # 환경 변수 로드
