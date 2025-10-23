@@ -37,6 +37,9 @@ Revue는 단순히 데이터를 읽는 AI가 아니라,
 Revue 프로젝트는 **데이터 전처리 → 인덱스 구축 → 서비스 구동**의 3단계로 구성되어 있습니다.  
 각 단계는 아래와 같이 `data` 폴더의 파일과 Python 코드로 연결되어 있습니다.  
 
+🔗 Google Drive (data + artifacts 전체)
+https://drive.google.com/drive/folders/13Kq5EvJBd-SP75wmDrNzxjts_9ayj3bH?usp=sharing
+
 <br>
 
 ### 📁 1️⃣ 원본 데이터
