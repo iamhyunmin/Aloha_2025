@@ -1,0 +1,2 @@
+artifacts/rag_faiss.index filter=lfs diff=lfs merge=lfs -text
+artifacts/meta.csv filter=lfs diff=lfs merge=lfs -text
