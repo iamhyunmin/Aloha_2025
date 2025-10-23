@@ -45,38 +45,29 @@ META_URL = "https://huggingface.co/hyunmin0215/aloha-assets/resolve/main/meta.cs
 
 
 # -------------------------------
-# 파일 다운로드 함수
-# -------------------------------
-def download_from_url(url, dest_path):
-    """Hugging Face 등에서 파일 다운로드 (Streamlit Cloud 호환)"""
-    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-    response = requests.get(url)
-    if response.status_code == 200:
-        with open(dest_path, "wb") as f:
-            f.write(response.content)
-        print(f"✅ 다운로드 완료: {dest_path}")
-    else:
-        raise RuntimeError(f"❌ 다운로드 실패 ({response.status_code}): {url}")
-    
 # 파일이 없을 경우 자동 다운로드
+# -------------------------------
 if not os.path.exists(FAISS_PATH):
-    print("🔽 Google Drive에서 FAISS 인덱스 다운로드 중...")
-    download_from_gdrive(FAISS_FILE_ID, FAISS_PATH)
+    print("🔽 Hugging Face에서 FAISS 인덱스 다운로드 중...")
+    download_from_url(FAISS_URL, FAISS_PATH)
 else:
     print("✅ FAISS 인덱스 이미 존재")
 
 if not os.path.exists(META_PATH):
-    print("🔽 Google Drive에서 meta.csv 다운로드 중...")
-    download_from_gdrive(META_FILE_ID, META_PATH)
+    print("🔽 Hugging Face에서 meta.csv 다운로드 중...")
+    download_from_url(META_URL, META_PATH)
 else:
     print("✅ meta.csv 이미 존재")
 
+
+# -------------------------------
 # 파일 로드
+# -------------------------------
 index = faiss.read_index(FAISS_PATH)
 meta = pd.read_csv(META_PATH)
 model = SentenceTransformer("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", device="cpu")
 
-print("✅ 인덱스 및 메타 로드 완료")
+print("✅ FAISS, META, MODEL 로드 완료")
 
 # -------------------------------
 # 추가 데이터 불러오기
@@ -423,6 +414,7 @@ if __name__ == "__main__":
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
         
+
 
 
 
