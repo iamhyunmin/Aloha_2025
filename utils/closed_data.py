@@ -1,8 +1,10 @@
 import pandas as pd
 import numpy as np
+from config import DATA_DIR
+import os
 
 # ===== 0) 파일 경로 =====
-PATH_DATA = "store_month_df_bucketed.csv"   # 이미 병합된 최종 파일
+PATH_DATA = os.path.join(DATA_DIR, "store_month_df_bucketed.csv")
 
 # ===== 1) 로드 =====
 df = pd.read_csv(PATH_DATA, encoding="utf-8-sig")
@@ -75,3 +77,4 @@ summary_df = summarize_by_status(df, cols_in_df)
 summary_df.to_csv("versus_closed.csv", index=False, encoding="utf-8-sig")
 print("요약 저장 완료 → 폐점_vs_영업중_요약지표.csv")
 print(summary_df.head(15))
+
