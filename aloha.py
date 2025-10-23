@@ -11,6 +11,9 @@ from rag_gemini import generate_revue_answer  # ✅ 기존 RAG+Gemini 함수 그
 import re # <-- 1. re 모듈 추가
 from config import DATA_DIR, ARTIFACTS_DIR
 import traceback
+import requests
+
+API_URL = "http://127.0.0.1:8000/search"
 
 # -------------------------------
 # 환경 변수 로드
@@ -387,18 +390,24 @@ if prompt := st.chat_input("가맹점 이름과 정확한 주소를 함께 질�
     with st.chat_message("assistant"):
         with st.spinner("🔍 분석 중입니다..."):
             try:
-                # 1. LLM 응답을 받습니다. (주석 해제)
-                # 'generate_revue_answer' 함수는 'rag_gemini' 모듈에서 가져옵니다.
-                answer = generate_revue_answer(prompt)
-                
-                # 2. LLM 응답을 파싱하고 구조화된 Streamlit 보고서로 출력합니다.
-                display_revue_report(answer) 
-                
+                # ✅ 1️⃣ MCP 서버로 POST 요청 보내기
+                res = requests.post(API_URL, json={"query": prompt})
+                data = res.json()
+
+                # ✅ 2️⃣ 서버 응답 처리
+                if "answer" in data:
+                    answer = data["answer"]
+                    display_revue_report(answer)  # 기존 보고서 출력 함수 그대로 사용
+                else:
+                    answer = f"⚠️ 서버 오류: {data.get('error', '응답 없음')}"
+                    st.markdown(answer)
+
             except Exception as e:
-                st.markdown(f"⚠️ 오류 발생: {e}")
+                answer = f"⚠️ 서버 연결 실패: {e}"
+                st.markdown(answer)
                 print("⚠️ 내부 오류 발생:")
                 print(traceback.format_exc())
-                
+
     # 4. 전체 응답 텍스트 (파싱 전 원본)를 대화 기록에 저장합니다.
     st.session_state["chat_history"].append({"role": "assistant", "content": answer})
     st.rerun()
