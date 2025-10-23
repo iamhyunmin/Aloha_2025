@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 import google.generativeai as genai  
 from config import DATA_DIR, ARTIFACTS_DIR
-import requests
+import requests, time
 
 # -------------------------------------
 # (공용 프롬프트 모듈로 불러오기 가능)
@@ -43,38 +43,63 @@ META_PATH = os.path.join(ARTIFACTS_DIR, "meta.csv")
 FAISS_FILE_ID = "1NnaIYYDzeFjn95Pf7J_abQ_-FWEhreu8"   # rag_faiss.index
 META_FILE_ID = "1GPI_coosS5YIbwvS-9GAjka-mVu47wY6"    # meta.csv
 
-def download_from_gdrive(file_id, dest_path):
-    """Google Drive 대용량(바이러스 스캔 경고 포함) 파일 다운로드 완전 버전"""
+def download_from_gdrive(file_id, dest_path, max_retries=3):
+    """Google Drive 대용량(바이러스 스캔 경고 포함) 파일 다운로드 완전/재시도 버전"""
     URL = "https://drive.google.com/uc?export=download"
     session = requests.Session()
-
-    response = session.get(URL, params={"id": file_id}, stream=True)
-    token = _get_confirm_token(response)
-
-    if token:
+    
+    for attempt in range(max_retries):
+        response = session.get(URL, params={"id": file_id}, stream=True)
+        token = _get_confirm_token(response)
+        
+        if not token:
+            # 쿠키에 토큰이 없으면 혹시 HTML이 아니라 바로 파일일 수도 있음
+            if _is_html(response):
+                print(f"⚠️ [시도 {attempt+1}] HTML 페이지 감지, 1초 후 재시도 중...")
+                time.sleep(1)
+                continue
+            else:
+                print("✅ HTML 아님 → 직접 저장 진행")
+                _save_response_content(response, dest_path)
+                return
+        
+        # 토큰이 있으면 confirm 파라미터로 재요청
         print("⚠️ Google Drive 경고 감지 → confirm 토큰 재요청 중...")
         response = session.get(URL, params={"id": file_id, "confirm": token}, stream=True)
-
-    _save_response_content(response, dest_path)
+        
+        if _is_html(response):
+            print(f"⚠️ [시도 {attempt+1}] 여전히 HTML 응답 → 재시도")
+            time.sleep(1)
+            continue
+        
+        _save_response_content(response, dest_path)
+        print(f"✅ 다운로드 완료: {dest_path}")
+        return
+    
+    raise RuntimeError("❌ Google Drive 다운로드 실패 — 바이러스 경고를 우회하지 못했습니다.")
 
 
 def _get_confirm_token(response):
-    """다운로드 경고 페이지에서 confirm 토큰 추출"""
     for key, value in response.cookies.items():
         if key.startswith("download_warning"):
             return value
     return None
 
+def _is_html(response):
+    """응답이 HTML(= Drive 경고 페이지)인지 검사"""
+    head = b""
+    try:
+        head = next(response.iter_content(512))
+    except StopIteration:
+        pass
+    return head.strip().startswith(b"<!DOCTYPE html") or b"<html" in head.lower()
 
 def _save_response_content(response, dest_path):
-    """스트림으로 대용량 파일 안전 저장"""
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-    CHUNK_SIZE = 32768
     with open(dest_path, "wb") as f:
-        for chunk in response.iter_content(CHUNK_SIZE):
-            if chunk:  # keep-alive chunk 무시
+        for chunk in response.iter_content(32768):
+            if chunk:
                 f.write(chunk)
-    print(f"✅ 다운로드 완료: {dest_path}")
     
 # 파일이 없을 경우 자동 다운로드
 if not os.path.exists(FAISS_PATH):
@@ -441,6 +466,7 @@ if __name__ == "__main__":
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
         
+
 
 
 
