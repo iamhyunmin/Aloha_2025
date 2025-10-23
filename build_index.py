@@ -4,26 +4,20 @@ import faiss, os, re, math
 from tqdm import tqdm
 from sentence_transformers import SentenceTransformer
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from config import DATA_DIR, ARTIFACTS_DIR
+import os
 
 # ----------------------------
-# 설정
+# 1️⃣ 설정
 # ----------------------------
-IN_PATH  = "data/store_with_rag_text.csv"   # 문장화 완료된 CSV
-OUT_DIR  = "artifacts"                 # 인덱스 저장 폴더
-EMB_MODEL = "BAAI/bge-m3"              # 임베딩 모델
-CHUNK_SIZE = 700                       # 청킹 크기 (토큰 단위 근사)
-CHUNK_OVERLAP = 100                    # 청킹 오버랩
-TOP_N = 5                              # 검색 시 top-k 기본값
+from config import DATA_DIR, ARTIFACTS_DIR
+import os
 
-os.makedirs(OUT_DIR, exist_ok=True)
-
-# ----------------------------
-# 1️⃣ 데이터 로드
-# ----------------------------
-print(f"[INFO] Loading data from {IN_PATH} ...")
+IN_PATH = os.path.join(DATA_DIR, "store_with_rag_text.csv")
+OUT_DIR = ARTIFACTS_DIR
+...
 df = pd.read_csv(IN_PATH, encoding="utf-8-sig")
-df = df[df["rag_text"].notna() & (df["rag_text"].str.strip() != "")]
-print(f"[INFO] Rows loaded: {len(df):,}")
+os.makedirs(OUT_DIR, exist_ok=True)
 
 # ----------------------------
 # 2️⃣ 청킹 (Chunking)
@@ -107,3 +101,4 @@ if __name__ == "__main__":
     for _, r in res.iterrows():
         print(f"🏪 {r['MCT_SIGUNGU_NM']} | {r['HPSN_MCT_ZCD_NM']} | score={r['score']:.3f}")
         print(f"→ {r['rag_text'][:120]}...\n")
+
