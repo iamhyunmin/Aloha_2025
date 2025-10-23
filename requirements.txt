@@ -1,7 +1,5 @@
 # ---------- Core Environment ----------
 torch==2.5.1
-#torchvision==0.20.1
-torchaudio==2.5.1
 
 # ---------- Sentence Embedding & Transformers ----------
 sentence-transformers==2.2.2     # 안정 버전, bge-m3 호환
@@ -28,4 +26,5 @@ streamlit==1.39.0
 # ---------- External API ----------
 google-generativeai
 python-dotenv
+
 
