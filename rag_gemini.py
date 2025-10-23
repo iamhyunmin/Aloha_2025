@@ -6,6 +6,8 @@ import re
 from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 import google.generativeai as genai  
+from config import DATA_DIR, ARTIFACTS_DIR
+import os
 
 # -------------------------------------
 # (공용 프롬프트 모듈로 불러오기 가능)
@@ -15,7 +17,7 @@ import google.generativeai as genai
 # -------------------------------
 # 환경 설정
 # -------------------------------
-OUT_DIR = "artifacts"
+OUT_DIR = ARTIFACTS_DIR
 EMB_MODEL = "BAAI/bge-m3"
 TOP_K = 12
 
@@ -33,8 +35,8 @@ llm = genai.GenerativeModel("gemini-2.5-flash")
 # -------------------------------
 # 인덱스 및 메타 불러오기
 # -------------------------------
-index = faiss.read_index(f"{OUT_DIR}/rag_faiss.index")
-meta = pd.read_csv(f"{OUT_DIR}/meta.csv")
+index = faiss.read_index(os.path.join(ARTIFACTS_DIR, "rag_faiss.index"))
+meta = pd.read_csv(os.path.join(ARTIFACTS_DIR, "meta.csv"))
 model = SentenceTransformer(EMB_MODEL, device="cpu")
 
 # -------------------------------
@@ -42,6 +44,7 @@ model = SentenceTransformer(EMB_MODEL, device="cpu")
 # -------------------------------
 
 # === 폐점 데이터 ===
+versus_path = os.path.join(DATA_DIR, "versus_closed.csv")
 if os.path.exists(versus_path):
     summary_df = pd.read_csv(versus_path, encoding="utf-8-sig")
 else:
@@ -380,5 +383,6 @@ if __name__ == "__main__":
             break
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
+
 
 
