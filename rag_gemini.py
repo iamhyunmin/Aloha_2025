@@ -61,12 +61,15 @@ meta = pd.read_csv(META_PATH)
 # -------------------------------
 # SentenceTransformer 로드
 # -------------------------------
-def load_model():
-    from sentence_transformers import SentenceTransformer
-    print("🔄 SentenceTransformer 로드 중... (BAAI/bge-m3)")
-    return SentenceTransformer("BAAI/bge-m3", device="cpu")
+_model = None
 
-model = load_model()
+def get_model():
+    global _model
+    if _model is None:
+        from sentence_transformers import SentenceTransformer
+        print("🔄 SentenceTransformer 최초 로드 중... (BAAI/bge-m3)")
+        _model = SentenceTransformer("BAAI/bge-m3", device="cpu")
+    return _model
 
 print("✅ FAISS, META, MODEL 로드 완료")
 # -------------------------------------
@@ -437,6 +440,7 @@ if __name__ == "__main__":
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
         
+
 
 
 
