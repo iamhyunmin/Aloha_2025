@@ -57,10 +57,20 @@ else:
 # -------------------------------
 index = faiss.read_index(FAISS_PATH)
 meta = pd.read_csv(META_PATH)
-model = SentenceTransformer("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", device="cpu")
+
+# -------------------------------
+# SentenceTransformer 로드
+# -------------------------------
+def load_model():
+    from sentence_transformers import SentenceTransformer
+    print("🔄 SentenceTransformer 로드 중...")
+    return SentenceTransformer(
+        "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", device="cpu"
+    )
+
+model = load_model()
 
 print("✅ FAISS, META, MODEL 로드 완료")
-
 # -------------------------------------
 # (공용 프롬프트 모듈로 불러오기 가능)
 # 다른 파일에서 from rag_gemini import SYSTEM_PROMPT 형태로 사용
@@ -429,6 +439,7 @@ if __name__ == "__main__":
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
         
+
 
 
 
