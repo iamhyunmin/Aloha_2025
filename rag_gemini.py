@@ -35,9 +35,53 @@ llm = genai.GenerativeModel("gemini-2.5-flash")
 # -------------------------------
 # 인덱스 및 메타 불러오기
 # -------------------------------
-index = faiss.read_index(os.path.join(ARTIFACTS_DIR, "rag_faiss.index"))
-meta = pd.read_csv(os.path.join(ARTIFACTS_DIR, "meta.csv"))
-model = SentenceTransformer(EMB_MODEL, device="cpu")
+ARTIFACTS_DIR = "data"
+FAISS_PATH = os.path.join(ARTIFACTS_DIR, "rag_faiss.index")
+META_PATH = os.path.join(ARTIFACTS_DIR, "meta.csv")
+
+# 🔹 Google Drive 파일 ID (각자 Drive 링크에서 복사)
+FAISS_FILE_ID = "1NnaIYYDzeFjn95Pf7J_abQ_-FWEhreu8"   # rag_faiss.index
+META_FILE_ID = "1GPI_coosS5YIbwvS-9GAjka-mVu47wY6"    # meta.csv
+
+def download_from_gdrive(file_id, dest_path):
+    """Google Drive에서 파일 다운로드 (Streamlit Cloud 호환)"""
+    URL = "https://drive.google.com/uc?export=download"
+    session = requests.Session()
+    response = session.get(URL, params={"id": file_id}, stream=True)
+
+    token = None
+    for k, v in response.cookies.items():
+        if k.startswith("download_warning"):
+            token = v
+    if token:
+        response = session.get(URL, params={"id": file_id, "confirm": token}, stream=True)
+
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    with open(dest_path, "wb") as f:
+        for chunk in response.iter_content(32768):
+            if chunk:
+                f.write(chunk)
+    print(f"✅ 다운로드 완료: {dest_path}")
+
+# 파일이 없을 경우 자동 다운로드
+if not os.path.exists(FAISS_PATH):
+    print("🔽 Google Drive에서 FAISS 인덱스 다운로드 중...")
+    download_from_gdrive(FAISS_FILE_ID, FAISS_PATH)
+else:
+    print("✅ FAISS 인덱스 이미 존재")
+
+if not os.path.exists(META_PATH):
+    print("🔽 Google Drive에서 meta.csv 다운로드 중...")
+    download_from_gdrive(META_FILE_ID, META_PATH)
+else:
+    print("✅ meta.csv 이미 존재")
+
+# 파일 로드
+index = faiss.read_index(FAISS_PATH)
+meta = pd.read_csv(META_PATH)
+model = SentenceTransformer("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", device="cpu")
+
+print("✅ 인덱스 및 메타 로드 완료")
 
 # -------------------------------
 # 추가 데이터 불러오기
@@ -384,6 +428,7 @@ if __name__ == "__main__":
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
         
+
 
 
 
