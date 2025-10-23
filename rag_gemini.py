@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 import google.generativeai as genai  
 from config import DATA_DIR, ARTIFACTS_DIR
-import os
+import requests
 
 # -------------------------------------
 # (공용 프롬프트 모듈로 불러오기 가능)
@@ -428,6 +428,7 @@ if __name__ == "__main__":
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
         
+
 
 
 
