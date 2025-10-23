@@ -3,8 +3,8 @@ import numpy as np
 import re
 from pathlib import Path
 
-IN_PATH  = "store_month_df.csv"
-OUT_PATH = "store_month_df_bucketed.csv"
+IN_PATH  = os.path.join(DATA_DIR, "store_month_df.csv")
+OUT_PATH = os.path.join(DATA_DIR, "store_month_df_bucketed.csv")
 
 df = pd.read_csv(IN_PATH, encoding="utf-8-sig")
 
@@ -178,4 +178,5 @@ Path(OUT_PATH).parent.mkdir(parents=True, exist_ok=True)
 df.to_csv(OUT_PATH, index=False, encoding="utf-8-sig")
 print(f"\n[DONE] saved → {OUT_PATH}  shape={df.shape}")
 print(df[["RC_M1_AV_NP_AT","RC_M1_AV_NP_AT_BIN","RC_M1_AV_NP_AT_MID"]].head(10))
+
 
