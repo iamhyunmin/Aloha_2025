@@ -44,17 +44,36 @@ FAISS_FILE_ID = "1NnaIYYDzeFjn95Pf7J_abQ_-FWEhreu8"   # rag_faiss.index
 META_FILE_ID = "1GPI_coosS5YIbwvS-9GAjka-mVu47wY6"    # meta.csv
 
 def download_from_gdrive(file_id, dest_path):
-    """Google Drive에서 파일 다운로드 (Streamlit Cloud 호환)"""
+    """Google Drive 대용량(바이러스 스캔 경고 포함) 파일 다운로드 완전 버전"""
     URL = "https://drive.google.com/uc?export=download"
     session = requests.Session()
+    
     response = session.get(URL, params={"id": file_id}, stream=True)
-
-    token = None
-    for k, v in response.cookies.items():
-        if k.startswith("download_warning"):
-            token = v
+    token = _get_confirm_token(response)
+    
     if token:
+        # 대용량 파일(바이러스 경고 페이지) 처리
+        print("⚠️ Google Drive 경고 감지 → confirm 토큰 재요청 중...")
         response = session.get(URL, params={"id": file_id, "confirm": token}, stream=True)
+
+    _save_response_content(response, dest_path)
+    print(f"✅ 다운로드 완료: {dest_path}")
+
+def _get_confirm_token(response):
+    """다운로드 경고 페이지에서 confirm 토큰 추출"""
+    for key, value in response.cookies.items():
+        if key.startswith("download_warning"):
+            return value
+    return None
+
+def _save_response_content(response, destination):
+    """스트림으로 대용량 파일 안전 저장"""
+    os.makedirs(os.path.dirname(destination), exist_ok=True)
+    CHUNK_SIZE = 32768
+    with open(destination, "wb") as f:
+        for chunk in response.iter_content(CHUNK_SIZE):
+            if chunk:  # 필터링된 keep-alive chunk 무시
+                f.write(chunk)
 
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
     with open(dest_path, "wb") as f:
@@ -428,6 +447,7 @@ if __name__ == "__main__":
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
         
+
 
 
 
