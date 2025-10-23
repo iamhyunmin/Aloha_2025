@@ -15,25 +15,26 @@ import requests, time
 ARTIFACTS_DIR = "data"
 FAISS_PATH = os.path.join(ARTIFACTS_DIR, "rag_faiss.index")
 META_PATH = os.path.join(ARTIFACTS_DIR, "meta.csv")
+QUERY_PATH = os.path.join(ARTIFACTS_DIR, "query_emb.pkl")
 
 # 🔹 Hugging Face 파일 URL
 FAISS_URL = "https://huggingface.co/hyunmin0215/aloha-assets/resolve/main/rag_faiss.index"
 META_URL = "https://huggingface.co/hyunmin0215/aloha-assets/resolve/main/meta.csv"
+QUERY_URL = "https://huggingface.co/hyunmin0215/aloha-assets/resolve/main/query_emb.pkl"
 
 
 # -------------------------------
 # (1) 다운로드 함수 정의 — 반드시 위쪽에 위치해야 함
 # -------------------------------
-def download_from_url(url, dest_path):
-    """Hugging Face 등에서 파일 다운로드 (Streamlit Cloud 호환)"""
-    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-    response = requests.get(url)
-    if response.status_code == 200:
-        with open(dest_path, "wb") as f:
-            f.write(response.content)
-        print(f"✅ 다운로드 완료: {dest_path}")
-    else:
-        raise RuntimeError(f"❌ 다운로드 실패 ({response.status_code}): {url}")
+def download_from_url(url, dest):
+    """Hugging Face에서 파일 다운로드"""
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    r = requests.get(url)
+    if r.status_code != 200:
+        raise RuntimeError(f"❌ 다운로드 실패: {url}")
+    with open(dest, "wb") as f:
+        f.write(r.content)
+    print(f"✅ 다운로드 완료: {dest}")
 
 
 # -------------------------------
@@ -51,13 +52,22 @@ if not os.path.exists(META_PATH):
 else:
     print("✅ meta.csv 이미 존재")
 
+if not os.path.exists(QUERY_PATH):
+    print("🔽 Hugging Face에서 query_emb.pkl 다운로드 중...")
+    download_from_url(QUERY_URL, QUERY_PATH)
+else:
+    print("✅ query_emb.pkl 이미 존재")
+
 
 # -------------------------------
 # (3) 파일 로드
 # -------------------------------
 index = faiss.read_index(FAISS_PATH)
 meta = pd.read_csv(META_PATH)
+with open(QUERY_PATH, "rb") as f:
+    query_emb = pickle.load(f)
 
+print("✅ FAISS, META, QUERY 임베딩 로드 완료")
 # -------------------------------
 # SentenceTransformer 로드
 # -------------------------------
@@ -156,13 +166,12 @@ def build_rating_summary(mct_list, max_lines=None):
 # -------------------------------
 # 검색 함수
 # -------------------------------
-def retrieve_context(query, top_k=TOP_K):
-    q_emb = get_model().encode([user_query], normalize_embeddings=True)
-    D, I = index.search(np.array(q_emb, dtype="float32"), top_k)
+def retrieve_context(top_k=5):
+    """미리 계산된 쿼리 임베딩 기반 검색"""
+    D, I = index.search(np.array(query_emb, dtype="float32"), top_k)
     ctx = meta.iloc[I[0]].copy()
     ctx["score"] = D[0]
     return ctx
-
 # -------------------------------
 # LLM 프롬프트 템플릿
 # -------------------------------
@@ -333,24 +342,16 @@ ReVue — 데이터를 길로 바꾸는 마케팅 네비게이션
 # ----------------------------
 # 🧠 질의 수행 함수
 # ----------------------------
-def generate_revue_answer(user_query, mct_list=None):
+def generate_revue_answer(user_query=None):
     """
-    RAG + 폐점 힌트 + 별점 데이터를 함께 반영한 질의 응답
-    - 주소 자동 감지 및 필터링 강화 (공백, 띄어쓰기 불일치 포함)
-    - 잘못된 fallback 제거 (불필요한 구 단위 재검색 X)
+    ReVue 시연용: bge-m3 없이 FAISS 검색 + LLM 응답
+    user_query는 무시하고 고정 query 기반으로 검색
     """
+    print("🔍 검색 시작 (고정 query 기반)")
+    ctx_df = retrieve_context(top_k=5)
 
-    # 1️⃣ RAG 검색
-    ctx_df = retrieve_context(user_query, top_k=TOP_K)
-    ctx_df_all = ctx_df.copy()  # 원본 백업 (필터 실패 시 전체 유지용)
-
-    # (validation) RAG 검색 결과 확인
-    print("=== 🔍 RAG 검색 결과 미리보기 ===")
-    print(ctx_df[["TA_YM", "rag_text"]].head())
-    print("================================\n")
-
-    # ✅ 기본 문맥 구성
-    context_text = "\n\n".join(ctx_df["rag_text"].head(10))
+    # 상위 결과 텍스트를 요약형으로 결합
+    context_text = "\n\n".join(ctx_df["rag_text"].tolist())
 
     # 1.5️⃣ 주소 자동 감지 및 필터링
     # 숫자 없어도 감지 가능 (ex. '왕십리로', '왕십리길')
@@ -440,6 +441,7 @@ if __name__ == "__main__":
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
         
+
 
 
 
