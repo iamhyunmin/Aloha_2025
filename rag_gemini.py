@@ -298,7 +298,7 @@ def generate_revue_answer(user_query, mct_list=None):
 
     # 1.5️⃣ 주소 자동 감지 및 필터링
     # 숫자 없어도 감지 가능 (ex. '왕십리로', '왕십리길')
-    addr_pattern = r"((서울(?:특별시)?\s*)?(성동구\s*)?[가-힣A-Za-z0-9]+(로|길|대로)?\s*\d*)"
+    addr_pattern = r"((서울(?:특별시)?\s*)?(성동구\s*)?[가-힣A-Za-z0-9]+(\s*\d+|\s*(로|길|대로|대|가|나|다|라|마|바|사|아|자|차|카|타|파|하))\s*\d*)"
     addr_match = re.search(addr_pattern, user_query)  # ✅ 질의문에서 주소 감지
 
     if addr_match:
@@ -383,6 +383,7 @@ if __name__ == "__main__":
             break
         ans = generate_revue_answer(q)
         print("\n" + "="*80 + "\n")
+
 
 
 
