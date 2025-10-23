@@ -1,6 +1,6 @@
 # ---------- Core Environment ----------
 torch==2.5.1
-torchvision==0.20.1
+#torchvision==0.20.1
 torchaudio==2.5.1
 
 # ---------- Sentence Embedding & Transformers ----------
@@ -28,3 +28,4 @@ streamlit==1.39.0
 # ---------- External API ----------
 google-generativeai
 python-dotenv
+
