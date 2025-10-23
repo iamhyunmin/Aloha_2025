@@ -27,7 +27,7 @@
 [2] 원본 데이터 (신한카드 제공)
 ────────────────────────
 
-용량 제한으로 인해 GitHub에 포함되지 않은 데이터와 인덱스를 구글 드라이브링크를 통해 다운 받을 수 있습니다.
+용량 제한으로 인해 GitHub에 포함되지 않은 데이터와 인덱스를 아래 링크를 통해 다운 받을 수 있습니다.
 아래 순서대로 전처리 코드를 실행하여 동일한 결과를 생성할 수 있습니다.
 
 전처리 코드 실행 순서:
@@ -50,16 +50,6 @@ https://drive.google.com/drive/folders/13Kq5EvJBd-SP75wmDrNzxjts_9ayj3bH?usp=sha
 - 절대경로 대신 os.path.join() 기반 상대경로로 통일되어 있습니다.
 - data 및 artifacts 폴더는 config.py 실행 시 자동 생성됩니다.
 → 이미 존재할 경우, 덮어쓰기 없이 그대로 유지됩니다.
-
-────────────────────────
-[4] 실행 순서 (데이터 기준)
-────────────────────────
-
-1️⃣ (선택) 원본 데이터(big_data_set1~3)를 data/ 폴더에 추가
-2️⃣ 각 전처리 코드 실행 → store_with_rag_text.csv 생성
-3️⃣ build_index.py 실행 → 인덱스(rag_faiss.index, meta.csv, document_keys.npy) 생성
-4️⃣ rag_gemini.py, aloha.py가 동일 디렉토리에 존재해야 함
-5️⃣ aloha.py 실행 → Streamlit 서비스 구동 (streamlit run aloha.py)
 
 
 작성자: [Team Aloha]
