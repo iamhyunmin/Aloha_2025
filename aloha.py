@@ -203,41 +203,37 @@ with st.sidebar:
 # LLM 텍스트 파싱 함수
 # ==============================================================================
 def extract_section(regex_pattern, text):
-    """주어진 정규 표현식 패턴을 사용하여 텍스트에서 섹션을 추출"""
+    """유연한 정규식 매칭 (줄바꿈/공백 포함)"""
     match = re.search(regex_pattern, text, re.DOTALL | re.IGNORECASE)
-    # 정규식 그룹 1을 반환하며 공백 제거, 매칭 실패 시 "정보 없음" 반환
     return match.group(1).strip() if match else "정보 없음"
 
-# LLM 텍스트를 파싱하고 Streamlit에 출력하는 함수
+
 def display_revue_report(llm_output_text):
-    # 1. LLM 텍스트 파싱
     data = {}
-    
-    # [현재 위치 파악] 섹션
-    data['traffic_light'] = extract_section(r'🚦신호등:\s*(.*?)\n', llm_output_text)
-    data['good_area'] = extract_section(r'🚗 잘 가고 있는 구간\n(.*?)\n\n⚠️ 느리게 가고 있는 구간', llm_output_text)
-    data['bad_area'] = extract_section(r'⚠️ 느리게 가고 있는 구간\n(.*?)\n\n🎯한줄요약:', llm_output_text)
-    data['summary'] = extract_section(r'🎯한줄요약:\s*(.*?)(?:\n\n|\n|$)', llm_output_text)
-    
-    # [경로 탐색] 섹션
-    data['Enhance_line'] = extract_section(r'- 강화 경로 \(Enhance Line\):\s*(.*?)\s*(?=- 보수 경로|\Z)', llm_output_text)
-    data['Fix_line'] = extract_section(r'- 보수 경로 \(Fix Line\):\s*(.*?)\s*(?=- 전환 경로|\Z)', llm_output_text)
-    data['Shift_line'] = extract_section(r'- 전환 경로 \(Shift Line\):\s*(.*?)\s*(?======|\Z)', llm_output_text)
 
-    # [최종 경로] 섹션
-    data['recommended_path'] = extract_section(r'추천 경로:\s*(.*?)\n', llm_output_text)
-    data['strategy_name'] = extract_section(r'전략명: (.*?)\n', llm_output_text)
-    data['core_idea'] = extract_section(r'핵심 아이디어: (.*?)\n', llm_output_text)
-    data['reason'] = extract_section(r'채택 근거: (.*?)\n', llm_output_text)
+    # [현재 위치 파악]
+    data['traffic_light'] = extract_section(r'🚦신호등:\s*(.*?)\s*\n', llm_output_text)
+    data['good_area'] = extract_section(r'🚗 잘 가고 있는 구간\s*(.*?)\s*⚠️ 느리게 가고 있는 구간', llm_output_text)
+    data['bad_area'] = extract_section(r'⚠️ 느리게 가고 있는 구간\s*(.*?)\s*🎯한줄요약', llm_output_text)
+    data['summary'] = extract_section(r'🎯한줄요약[:：]?\s*(.*?)\s*(?:=====|\Z)', llm_output_text)
 
-    # [운행 안내] 섹션=
-    data['action_plan'] = extract_section(r'<실행 방법>\n(.*?)\n\n<기대효과>', llm_output_text)
-    data['expected_effect'] = extract_section(r'<기대효과>\n(.*?)\n\n===== 🏆 도착 알림', llm_output_text)
+    # [경로 탐색]
+    data['Enhance_line'] = extract_section(r'강화 경로 \(Enhance Line\):\s*(.*?)\s*- 보수 경로', llm_output_text)
+    data['Fix_line'] = extract_section(r'보수 경로 \(Fix Line\):\s*(.*?)\s*- 전환 경로', llm_output_text)
+    data['Shift_line'] = extract_section(r'전환 경로 \(Shift Line\):\s*(.*?)\s*===== 🏁최종 경로', llm_output_text)
 
-    # [도착 알림] 섹션
-    data['growth_phrase'] = extract_section(
-    r'🎉오늘 사장님은 [“"](.*?)[”"](으)?로 성장했습니다!', 
-    llm_output_text)
+    # [최종 경로]
+    data['recommended_path'] = extract_section(r'추천 경로:\s*(.*?)\s*\n', llm_output_text)
+    data['strategy_name'] = extract_section(r'전략명:\s*(.*?)\s*\n', llm_output_text)
+    data['core_idea'] = extract_section(r'핵심 아이디어:\s*(.*?)\s*\n', llm_output_text)
+    data['reason'] = extract_section(r'채택 근거:\s*(.*?)\s*\n', llm_output_text)
+
+    # [운행 안내]
+    data['action_plan'] = extract_section(r'<실행 방법>\s*(.*?)\s*<기대효과>', llm_output_text)
+    data['expected_effect'] = extract_section(r'<기대효과>\s*(.*?)\s*(?:===== 🏆 도착 알림|\Z)', llm_output_text)
+
+    # [도착 알림]
+    data['growth_phrase'] = extract_section(r'🎉오늘 사장님은 [“"](.*?)[”"](으)?로 성장했습니다', llm_output_text)
     
     # 2. Streamlit UI 구성
     
