@@ -220,7 +220,7 @@ def display_revue_report(llm_output_text):
     # [경로 탐색]
     data['Enhance_line'] = extract_section(r'강화 경로 \(Enhance Line\):\s*(.*?)\s*- 보수 경로', llm_output_text)
     data['Fix_line'] = extract_section(r'보수 경로 \(Fix Line\):\s*(.*?)\s*- 전환 경로', llm_output_text)
-    data['Shift_line'] = extract_section(r'전환 경로 \(Shift Line\):\s*(.*?)\s*===== 🏁최종 경로', llm_output_text)
+    data['Shift_line'] = extract_section(r'전환 경로 \(Shift Line\):\s*(.*?)\s*(?:=====|\Z)', llm_output_text)
 
     # [최종 경로]
     data['recommended_path'] = extract_section(r'추천 경로:\s*(.*?)\s*\n', llm_output_text)
@@ -233,44 +233,35 @@ def display_revue_report(llm_output_text):
     data['expected_effect'] = extract_section(r'<기대효과>\s*(.*?)\s*(?:===== 🏆 도착 알림|\Z)', llm_output_text)
 
     # [도착 알림]
-    data['growth_phrase'] = extract_section(r'🎉오늘 사장님은 [“"](.*?)[”"](으)?로 성장했습니다', llm_output_text)
-    
-    # 2. Streamlit UI 구성
-    
-    # 1） 현재 위치 파악
+    data['growth_phrase'] = extract_section(
+        r'🎉오늘 사장님은 [“"](.*?)[”"]?(으)?로 성장했습니다', llm_output_text
+    )
+
+    # ===============================================
+    # Streamlit UI 렌더링
+    # ===============================================
     st.subheader("📍 현재 가게 위치 파악")
     st.markdown(f"<p style='font-size:1.4rem; font-weight:700;'>🚦 우리 가게 신호: {data['traffic_light']}</p>", unsafe_allow_html=True)
 
-
     col1, col2 = st.columns(2)
-    
-# --- 잘 가고 있는 구간 ---
-    good_area_content = data['good_area']
     with col1:
-        # st.expander로 변경: 제목은 잘 가고 있는 구간
         with st.expander("🚗 잘 가고 있는 구간", expanded=True):
-            st.markdown(good_area_content)
-
-    # --- 느리게 가고 있는 구간 ---
-    bad_area_content = data['bad_area']
+            st.markdown(data['good_area'])
     with col2:
-        # st.expander로 변경: 제목은 느리게 가고 있는 구간
         with st.expander("⚠️ 느리게 가고 있는 구간", expanded=True):
-            st.markdown(bad_area_content)
+            st.markdown(data['bad_area'])
 
     st.markdown("🎯**한줄요약:**")
     with st.container(border=True):
-        st.markdown(data['summary']) # 일반 텍스트로 내용만 표시
+        st.markdown(data['summary'])
     st.markdown("---")
 
-    # 2） 경로 탐색
     st.subheader("🧭 마케팅 경로 탐색")
-    st.markdown(f"**- 🔥 강화 경로 (Enhance Line):** {data['Enhance_line']}")
-    st.markdown(f"**- 🛠️ 보수 경로 (Fix Line):** {data['Fix_line']}")
-    st.markdown(f"**- 💫 전환 경로 (Shift Line):** {data['Shift_line']}")
+    st.markdown(f"**🔥 강화 경로 (Enhance Line):** {data['Enhance_line']}")
+    st.markdown(f"**🛠️ 보수 경로 (Fix Line):** {data['Fix_line']}")
+    st.markdown(f"**💫 전환 경로 (Shift Line):** {data['Shift_line']}")
     st.markdown("---")
-    
-    # 3） 최종 경로 (추가된 섹션)
+
     st.subheader("🏁 최종 마케팅 경로")
     st.markdown(f"**🏆 추천 경로:**  **{data['recommended_path']}**")
     st.markdown(f"<p style='font-size:1.2rem; font-weight:700;'> 전략명: {data['strategy_name']}</p>", unsafe_allow_html=True)
@@ -278,21 +269,13 @@ def display_revue_report(llm_output_text):
     st.markdown(f"**채택 근거:** {data['reason']}")
     st.markdown("---")
 
-    # 4） 운행 안내 (st.success/st.warning로 변경)
     st.subheader("🧩 운행 전략 안내")
-    
-    # === 실행 방법 (제목 분리 후 success 박스) ===
     st.markdown(f"**📝 실행 방법**")
-    # ✅ 핵심 수정: st.success 내부에서 f-string 제거하고 data['action_plan']만 전달
-    st.success(data['action_plan']) 
-    
-    # === 기대 효과 (제목 분리 후 warning 박스) ===
+    st.success(data['action_plan'])
     st.markdown(f"**📈 기대효과**")
-    # ✅ 핵심 수정: st.warning 내부에서 f-string 제거하고 data['expected_effect']만 전달
-    st.warning(data['expected_effect']) 
+    st.warning(data['expected_effect'])
     st.markdown("---")
 
-    # 5） 도착 알림
     st.subheader("🛣️ 도착 알림")
     st.markdown(f"🚈 **‘{data['strategy_name']}’ 노선에 진입하셨네요.**")
     st.markdown(f"🎉오늘 사장님은 “**{data['growth_phrase']}**”(으)로 성장했습니다!")
